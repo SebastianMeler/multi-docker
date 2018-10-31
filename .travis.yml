@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t smeler/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run smeler/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t smeler/multi-client ./client
+  - docker build -t smeler/multi-nginx ./nginx
+  - docker build -t smeler/multi-server ./server
+  - docker build -t smeler/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push smeler/multi-client
+  - docker push smeler/multi-nginx
+  - docker push smeler/multi-server
+  - docker push smeler/multi-worker
